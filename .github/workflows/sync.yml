@@ -1,0 +1,35 @@
+name: Sync
+
+# Vercel's Hobby cron is capped at once per day with ±59 min precision, which
+# is useless for a dashboard. GitHub Actions gives us 15-minute granularity
+# for free (~100 of the 2,000 free minutes/month).
+#
+# Repo secrets required: APP_URL, CRON_SECRET
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+# A slow run must never stack on top of the next tick.
+concurrency:
+  group: life-dashboard-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger sync
+        run: |
+          code=$(curl -sS -o /tmp/out.json -w '%{http_code}' \
+            -X POST "${{ secrets.APP_URL }}/api/cron/sync" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 120)
+          echo "HTTP $code"
+          cat /tmp/out.json
+          echo
+          if [ "$code" != "200" ]; then
+            echo "::error::Sync failed with HTTP $code"
+            exit 1
+          fi
