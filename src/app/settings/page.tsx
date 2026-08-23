@@ -1,4 +1,5 @@
 import { AccountRow } from '@/components/AccountRow';
+import { LlmSettings } from '@/components/LlmSettings';
 import { ProfileCard } from '@/components/ProfileCard';
 import { SyncButton } from '@/components/SyncButton';
 import { ENABLE_GMAIL } from '@/lib/env';
@@ -72,6 +73,8 @@ export default async function SettingsPage({
             Life Dashboard</em>. You can rename a label any time.
           </p>
         </section>
+
+        <LlmSettings />
 
         <section className="card">
           <h2>Data &amp; scopes</h2>

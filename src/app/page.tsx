@@ -1,4 +1,5 @@
 import { AccountFilter } from '@/components/AccountFilter';
+import { AskPanel } from '@/components/AskPanel';
 import { LocationPrompt } from '@/components/LocationPrompt';
 import { ResolvePlace } from '@/components/ResolvePlace';
 import { SyncButton } from '@/components/SyncButton';
@@ -150,6 +151,12 @@ export default async function Home() {
         </section>
 
         <WeatherPanel weather={weather} place={place} unit={unit} />
+      </div>
+
+      {/* Scheduling chat. Slot arithmetic is server-side and deterministic; the
+          model (if a key is configured) only phrases the answer. */}
+      <div style={{ marginBottom: 16 }}>
+        <AskPanel freeToday={formatMins(free.freeMinutes)} />
       </div>
 
       <div className="grid cols-2" style={{ marginBottom: 16 }}>

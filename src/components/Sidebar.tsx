@@ -10,6 +10,7 @@ const icons: Record<string, React.ReactNode> = {
   tasks: <><circle cx="12" cy="12" r="9" /><path d="m8.5 12 2.5 2.5 4.5-5" /></>,
   mail: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="m3 7 8.2 5.6a1.5 1.5 0 0 0 1.6 0L21 7" /></>,
   habits: <><path d="M3 17.5 8.5 12l3.5 3.5L21 6.5" /><path d="M15.5 6.5H21v5.5" /></>,
+  prep: <><path d="M4 4.5h6a2.5 2.5 0 0 1 2 2.5 2.5 2.5 0 0 1 2-2.5h6v13h-6a2.5 2.5 0 0 0-2 2.5 2.5 2.5 0 0 0-2-2.5H4Z" /><path d="M12 7v13" /></>,
   accounts: <><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></>,
 };
 
@@ -19,6 +20,7 @@ const NAV = [
   { href: '/tasks', label: 'Tasks', icon: 'tasks' },
   { href: '/inbox', label: 'Emails', icon: 'mail', gmailOnly: true },
   { href: '/habits', label: 'Habits', icon: 'habits' },
+  { href: '/prep', label: 'Prep', icon: 'prep' },
 ];
 
 export function Sidebar({ enableGmail }: { enableGmail: boolean }) {
