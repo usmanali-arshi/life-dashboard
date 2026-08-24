@@ -7,7 +7,7 @@ export const dbIndexing: DesignSheet = {
   source: 'Hello Interview — Core Concepts',
   sourceUrl: 'https://www.hellointerview.com/learn/system-design/core-concepts/db-indexing',
   tags: ['system-design', 'databases', 'b-tree', 'lsm', 'geospatial', 'search'],
-  updated: '2026-08-22',
+  updated: '2026-08-24',
 
   gist: [
     'When in doubt, say B-tree. The lesson\'s own words: "B-trees are a safe bet." They handle equality AND range AND sort, which is why every database defaults to them.',
@@ -26,6 +26,26 @@ export const dbIndexing: DesignSheet = {
 
   sections: [
     {
+      heading: 'Commonly missed — the exact claims people get backwards',
+      tone: 'warn',
+      points: [
+        'SSDs did NOT make random access as fast as sequential. The lesson calls this out by name as a common misconception — the gap narrowed, it never closed, and on HDDs it is dramatic.',
+        'Hash indexes are NOT the fast choice for lookups in general. B-trees handle equality almost as efficiently AND do ranges and sorting. Bruce Momjian: "Hash indexes solve a problem we rarely have."',
+        'Indexes do not merely cost storage. Every insert and update writes to the table AND to every index on it — one write becomes several.',
+        'LSM trees are not faster at everything. They deliberately trade READ performance for write throughput.',
+        'An LSM tree is NOT a per-column index you add. It is the storage format for the whole table, sorted by primary key; secondary indexes need separate structures.',
+        'DynamoDB does not switch storage engines based on access pattern. It is understood to be LSM-style; the internals are not public.',
+        'A composite index on (a, b) does nothing for a query filtering on b alone. Only a LEFTMOST PREFIX of the column list is usable.',
+        '"Most selective column first" is a heuristic, not a law. A frequently-sorted column can be worth including even when it is not selective, because it buys a free ORDER BY.',
+        'Covering indexes are not a default win. The lesson calls them niche in 2026 — planners are good now, and the storage and maintenance cost is real.',
+        'A B-tree cannot serve LIKE \'%term%\'. It only seeks on a known PREFIX; a leading wildcard forces a full scan. That is what inverted indexes exist for.',
+        'A bloom filter answers "definitely not present" or "maybe present" — never "definitely present". False positives yes, false negatives no. Getting that direction backwards is a classic.',
+        'Quadtrees are not the production standard for spatial data. R-trees are; quadtrees are the conceptual ancestor and are rare in modern databases.',
+        'Two separate B-trees on latitude and longitude do NOT give you proximity search. Two 1-D indexes cannot express a 2-D relationship.',
+        'More indexes is not monotonically better. Small tables and write-heavy, read-rare tables are actively worse off with them.',
+      ],
+    },
+    {
       heading: 'Why indexes exist',
       points: [
         'Table data sits in a HEAP FILE — rows in no particular order, like a notebook written front to back.',
@@ -41,6 +61,7 @@ export const dbIndexing: DesignSheet = {
         'Every index is extra disk, sometimes nearly as much as the table itself.',
         'Every write updates the table AND every index on it. Several indexes turn one insert into several disk writes.',
         'When indexes hurt: write-heavy, read-rare tables — a logging table is the classic. Also tiny tables, where scanning beats traversing.',
+        'Nuance worth having ready: the MEMORY impact is often overblown, because modern buffer-pool management absorbs a lot. The write-throughput cost is the real one.',
         'Volunteering the write cost is what separates "I\'d add an index" from "I\'d add an index, and here is what it costs me."',
       ],
     },
@@ -52,7 +73,8 @@ export const dbIndexing: DesignSheet = {
         'Each node is sized to one disk page (~8 KB), so tree depth maps directly to disk reads. Finding id=350 is 2–3 page reads.',
         'Node rules: between m/2 and m keys, a node with k keys has exactly k+1 children, keys sorted within the node.',
         'Five reasons it wins: keeps sorted order (range queries, ORDER BY), self-balancing (predictable), matches disk page layout (minimal I/O), equally good at equality and range, and stays balanced under random writes.',
-        'Postgres auto-creates a B-tree for every PRIMARY KEY and UNIQUE constraint. MongoDB uses B+ trees (all data in the leaves).',
+        'Postgres auto-creates a B-tree for every PRIMARY KEY and UNIQUE constraint — so `CREATE TABLE users (id SERIAL PRIMARY KEY, email VARCHAR UNIQUE)` silently builds TWO indexes, not zero.',
+        'MongoDB uses B+ TREES specifically — a variant where all data lives in the leaves, which is what makes leaf-to-leaf range scans cheap. Worth naming the distinction if asked.',
       ],
     },
     {
@@ -154,6 +176,9 @@ export const dbIndexing: DesignSheet = {
     { q: 'What does an index cost?', a: 'Storage plus a write to every index on every insert and update. Bad trade on write-heavy, read-rare tables.' },
     { q: 'How does an LSM tree stay readable?', a: 'Bloom filters skip SSTables that definitely lack the key, sparse indexes skip by key range, compaction keeps the file count down.' },
     { q: 'What is a covering index?', a: 'One that also holds the returned columns, so the query never touches the heap. Niche in 2026 — justify it or skip it.' },
+    { q: 'Are SSDs random-access-fast now?', a: 'No. Sequential still beats random on SSDs — narrower gap, not a closed one.' },
+    { q: 'What does a bloom filter actually tell you?', a: '"Definitely not here" or "maybe here". False positives are possible; false negatives are not.' },
+    { q: 'Does (user_id, created_at) help a query on created_at alone?', a: 'No — leftmost prefix only. You would need a separate index.' },
     { q: 'How deep should I go here?', a: 'Infrastructure role: deep. Product or full-stack: know when and why to index, not B-tree internals.' },
   ],
 };

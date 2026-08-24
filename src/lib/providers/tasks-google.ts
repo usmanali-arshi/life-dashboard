@@ -50,6 +50,20 @@ export const googleTasks: TaskProvider = {
   },
 
   /**
+   * Rename a list.
+   *
+   * PATCH rather than PUT: PUT on this endpoint replaces the resource, and
+   * Google treats omitted fields as cleared. PATCH touches only the title.
+   */
+  async renameTaskList(accessToken, listId, title): Promise<TaskList> {
+    const updated = await gtasks(`/users/@me/lists/${listId}`, accessToken, {
+      method: 'PATCH',
+      body: JSON.stringify({ title: title.trim().slice(0, 100) }),
+    });
+    return { id: updated.id, title: updated.title };
+  },
+
+  /**
    * Full refetch every run. Google Tasks has no useful incremental sync and the
    * volume is tens of items — cursor bookkeeping would cost more than it saves.
    */

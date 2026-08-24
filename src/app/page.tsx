@@ -6,7 +6,9 @@ import { SyncButton } from '@/components/SyncButton';
 import { TaskItem, type TaskRow } from '@/components/TaskItem';
 import { WeatherPanel } from '@/components/WeatherPanel';
 import { ToolBadge, accountTint, fmtTime } from '@/components/ui';
-import { formatClock, formatMins, freeTimeToday, whatFits } from '@/lib/briefing/freetime';
+import {
+  DAY_END_LABEL, formatClock, formatMins, freeTimeToday, whatFits,
+} from '@/lib/briefing/freetime';
 import { calendarBrief, inboxBrief, tasksBrief } from '@/lib/briefing/tabs';
 import { ENABLE_GMAIL } from '@/lib/env';
 import { fetchWeather } from '@/lib/providers/weather';
@@ -144,7 +146,7 @@ export default async function Home() {
                 user's timezone. */}
             {free.dayOver
               ? 'the day is done'
-              : `unclaimed between ${formatClock(Math.max(minutesIn(now, tz), 8 * 60))} and 10pm`}
+              : `unclaimed between ${formatClock(Math.max(minutesIn(now, tz), 8 * 60))} and ${DAY_END_LABEL}`}
             {free.remainingMeetings > 0 && ` · ${free.remainingMeetings} meeting${free.remainingMeetings > 1 ? 's' : ''} left`}
           </div>
           <p className="free-fits">{whatFits(free, openToday)}</p>

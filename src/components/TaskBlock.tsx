@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { TaskItem, type TaskRow } from './TaskItem';
+import { ListGroupSection, groupByList } from './ListGroup';
+import type { TaskRow } from './TaskItem';
 
 /**
  * One bucket of tasks (Overdue / Due today / Later) with multi-select.
@@ -33,6 +34,7 @@ export function TaskBlock({ title, subtitle, tasks, tz, tone, defaultOpen = true
   // it for the count meant "Completed today" always displayed (0), since every
   // task in that block is by definition completed.
   const shownCount = tasks.length;
+  const groups = groupByList(tasks);
 
   function toggleOne(id: string, next: boolean) {
     setSelected((s) => {
@@ -121,12 +123,15 @@ export function TaskBlock({ title, subtitle, tasks, tz, tone, defaultOpen = true
       )}
 
       {open && (
-        <div className="rowlist">
-          {tasks.map((t) => (
-            <TaskItem
-              key={t.id} task={t} tz={tz}
-              selectable={!t.completed}
-              selected={selected.has(t.id)}
+        <div className="grouplist">
+          {groups.map((g) => (
+            <ListGroupSection
+              key={g.key} group={g} tz={tz}
+              // One group means the heading would only repeat what the rows
+              // already say. Show it from two upwards, where it earns its space
+              // by separating them.
+              showHeading={groups.length > 1}
+              selected={selected}
               onSelect={toggleOne}
             />
           ))}

@@ -14,6 +14,9 @@ export interface TaskRow {
   project_name: string | null;
   url: string | null;
   source?: string;
+  /** Provider-side ids, needed to rename the owning list. Null for local tasks. */
+  linked_account_id?: string | null;
+  external_list_id?: string | null;
   linked_accounts: { label: string | null; email: string; color: string } | null;
 }
 

@@ -8,9 +8,31 @@ import { dayKeyIn, minutesIn } from '../tz';
  */
 
 const DAY_START = 8 * 60;   // 08:00
-const DAY_END = 22 * 60;    // 22:00
+/**
+ * Midnight, not a bedtime.
+ *
+ * This card answers "how much of today is unclaimed" — a measurement, and the
+ * day measurably ends at 00:00. Cutting it at 22:00 quietly deducted two hours
+ * you might well use, and made the number disagree with the calendar tab, which
+ * already runs to midnight.
+ *
+ * Note this is NOT the same constant as the scheduler's DAY_END in
+ * lib/scheduling/slots.ts, and they shouldn't be merged: that one answers "when
+ * should I put the gym", where proposing 11:15pm is a bad suggestion rather
+ * than a wrong number.
+ */
+const DAY_END = 24 * 60;    // 00:00
 /** Gaps shorter than this aren't usable for anything, so they don't count. */
 const MIN_USABLE = 20;
+
+/**
+ * How the window's end reads in prose. Exported so the card can't drift from
+ * the arithmetic — the old copy hardcoded "10pm" in the page, which would have
+ * kept saying 10pm after this constant moved.
+ * "midnight" rather than formatClock(1440), which would render "12am" — the
+ * wrong end of the day to most readers.
+ */
+export const DAY_END_LABEL = 'midnight';
 
 export interface FreeTime {
   freeMinutes: number;

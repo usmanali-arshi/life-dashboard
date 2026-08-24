@@ -1,8 +1,10 @@
 import { apiDesign } from './sheets/api-design';
 import { dbIndexing } from './sheets/db-indexing';
+import { caching } from './sheets/caching';
 import { dataModeling } from './sheets/data-modeling';
 import { deliveryFramework } from './sheets/delivery-framework';
 import { stack } from './sheets/stack';
+import { sharding } from './sheets/sharding';
 import { slidingWindow } from './sheets/sliding-window';
 import type { Sheet, SheetKind } from './types';
 
@@ -17,6 +19,8 @@ export const SHEETS: Sheet[] = [
   apiDesign,
   dataModeling,
   dbIndexing,
+  caching,
+  sharding,
   slidingWindow,
   stack,
 ];

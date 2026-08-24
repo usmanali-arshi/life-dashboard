@@ -105,6 +105,9 @@ export interface TaskProvider {
   listTasks(accessToken: string): Promise<SyncResult<NormalizedTask>>;
   listTaskLists(accessToken: string): Promise<TaskList[]>;
   createTaskList(accessToken: string, title: string): Promise<TaskList>;
+  /** Rename an existing list. Writes through to the provider, so the new name
+   *  shows up everywhere the user looks at these tasks, not just here. */
+  renameTaskList(accessToken: string, listId: string, title: string): Promise<TaskList>;
   /** completed=false un-completes, so the checkbox is a toggle rather than a
    *  one-way door. */
   setCompleted(accessToken: string, ref: TaskRef, completed: boolean): Promise<void>;

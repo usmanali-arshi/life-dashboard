@@ -58,13 +58,42 @@ export interface DesignSheet extends SheetMeta {
   quickfire?: QA[];
 }
 
+/**
+ * A row of the routing table: what you SEE in the problem, which template it
+ * maps to, and why. This is the part you read under pressure — picking the
+ * right skeleton is most of the battle, and a wall of templates with no index
+ * into it is not usable in an interview.
+ */
+export interface Route {
+  /** The phrase or shape in the problem statement. */
+  signal: string;
+  /** Template id it routes to, e.g. 'C'. Matches the `id` on a Template. */
+  use: string;
+  /** One line on why that template fits — the reasoning, not just the mapping. */
+  why: string;
+}
+
+/** One numbered step of a derivation, so a hard problem is reachable cold. */
+export interface Step {
+  label: string;
+  body: string;
+  code?: string;
+}
+
 /** LeetCode pattern template. */
 export interface PatternSheet extends SheetMeta {
   kind: 'pattern';
   /** Phrases in a problem statement that mean "reach for this pattern". */
   triggers: string[];
-  /** The skeleton you should be able to type from muscle memory. Python. */
-  template: { label: string; code: string; note?: string }[];
+  /** Signal → template routing table. Rendered before the templates. */
+  routing?: Route[];
+  /**
+   * The skeletons, each with a short id ('A', 'B', …) that `routing` targets.
+   * `when` is the one-line "use this if…" printed under the heading.
+   */
+  template: { id?: string; label: string; when?: string; code: string; note?: string }[];
+  /** Derivation of a problem that is hard to reach without having seen it. */
+  walkthrough?: { title: string; steps: Step[] };
   complexity: { time: string; space: string; note?: string };
   sections: Section[];
   /** Problems that fit, easy → hard, each with the twist it adds. */

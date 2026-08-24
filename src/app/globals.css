@@ -210,7 +210,15 @@ a { color: inherit; }
   border-top: 1px solid var(--border);
 }
 .row:first-child { border-top: none; }
-.row .main-col { flex: 1; min-width: 0; }
+
+/* The title column grows, but only to a cap. Past roughly 52 characters a task
+   title is a paragraph, not a label, and letting it run to 1400px stranded the
+   due pill, Edit and Done against the far edge — a long horizontal saccade for
+   every row, repeated down the page.
+   flex-grow with a max-width means every row reaches the same width whenever
+   there's room, so the trailing controls still line up into columns; when
+   there isn't room (a narrow group column) it simply fills what it has. */
+.row .main-col { flex: 1 1 auto; min-width: 0; max-width: 52ch; }
 /* display:block is load-bearing — these are <span>s, and inline elements
    ignore margin-top, which ran the title and its subtitle together on one
    line ("Size ChartsARSH TASKS"). */
@@ -709,4 +717,159 @@ a { color: inherit; }
 .linkall {
   display: inline-block; margin-top: 12px;
   font-size: 13.5px; font-weight: 600; color: var(--accent); text-decoration: none;
+}
+
+/* ─── Task list grouping ───────────────────────────────────────────────
+   Sub-headings inside a date block. The block (Today / Later) stays the
+   primary structure because urgency is what you act on; the list is the
+   secondary axis, so its heading is deliberately quieter than the block's
+   h2 — smaller, uppercase-tracked, no rule above the first one. */
+
+/* Groups flow into as many columns as the card can fit. auto-fit rather than
+   auto-fill so a single group still spans the full card instead of sitting in a
+   narrow strip with dead space beside it.
+   The 320px floor is where a task row stops being readable: below it the title
+   wraps to three lines and the due pill starts colliding with Edit. Under
+   ~700px of card the grid collapses to one column on its own — no breakpoint
+   needed, because the floor does the work. */
+.grouplist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 4px 26px;
+  align-items: start;
+}
+
+/* Columns need a vertical separator; a horizontal rule between stacked groups
+   (what this was before) would draw across unrelated neighbours in a grid. */
+.listgroup { padding-bottom: 10px; }
+.listgroup + .listgroup { border-left: 1px solid var(--border); padding-left: 22px; margin-left: -13px; }
+/* First item of each wrapped row has nothing to its left, so its rule would
+   float against the card edge. Can't detect wrapping in CSS, so the rule is
+   dropped entirely once the grid is single-column. */
+@media (max-width: 900px) {
+  .listgroup + .listgroup { border-left: none; padding-left: 0; margin-left: 0; }
+}
+
+.listgroup-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 2px 6px;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.listgroup-head { border-bottom: 1px solid var(--border); margin-bottom: 2px; }
+
+.listgroup-acct { font-weight: 650; color: var(--text-secondary); }
+.listgroup-sep { opacity: 0.5; }
+
+.listgroup-name {
+  font: inherit;
+  color: var(--text-secondary);
+  background: none;
+  border: 0;
+  border-radius: 5px;
+  padding: 2px 5px;
+  margin: -2px 0;
+  cursor: text;            /* it becomes a text field — say so before the click */
+  text-align: left;
+}
+.listgroup-name:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.listgroup-name.static { padding-inline: 0; }
+
+.listgroup-input {
+  font-size: 12px;
+  padding: 3px 7px;
+  height: auto;
+  width: clamp(120px, 22ch, 260px);
+}
+
+.listgroup-busy { font-size: 11.5px; color: var(--text-muted); }
+
+/* Pushed right so the count sits on the block edge, aligned down the page. */
+.listgroup-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.listgroup-error,
+.listgroup-note { font-size: 12.5px; margin: 0 0 8px; }
+.listgroup-error { color: var(--critical); }
+.listgroup-note { color: var(--text-muted); }
+
+/* ─── Add-task confirmation ────────────────────────────────────────────
+   The composer closes on success, so this is the only evidence the task
+   saved — and it names the destination, because "Added" alone doesn't tell
+   you whether it went to Cornell or Noon. */
+
+.addtask-closed { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.addflash {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px 5px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--good) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 35%, transparent);
+}
+.addflash strong { color: var(--text-primary); font-weight: 600; }
+.addflash-tick { color: var(--good); font-weight: 700; }
+
+/* Announced to screen readers via role="status", but motion is opt-in. */
+@media (prefers-reduced-motion: no-preference) {
+  .addflash { animation: flash-in 160ms ease-out; }
+  @keyframes flash-in {
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* ─── Account colour swatches ──────────────────────────────────────────
+   A fixed palette rather than a free picker — see AccountRow.tsx for why. */
+
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.swatch {
+  width: 24px; height: 24px; border-radius: 7px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: grid; place-items: center;
+  padding: 0;
+  /* Keeps a pale swatch from disappearing into the card on the light theme. */
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
+}
+.swatch:hover { transform: scale(1.08); }
+.swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Ring sits outside the fill so it reads against both dark and light swatches. */
+.swatch.on {
+  border-color: var(--surface-1);
+  box-shadow: 0 0 0 2px var(--text-primary), inset 0 0 0 1px rgb(0 0 0 / 0.18);
+}
+.swatch-tick { color: #fff; font-size: 12px; font-weight: 800; text-shadow: 0 1px 2px rgb(0 0 0 / 0.45); }
+
+/* Hatch marks a colour another account already uses. Deliberately not
+   disabled — it's a nudge, not a rule. */
+.swatch.used::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background: repeating-linear-gradient(
+    45deg, transparent 0 3px, rgb(255 255 255 / 0.55) 3px 5px);
+}
+.swatch.used { position: relative; opacity: 0.75; }
+
+@media (prefers-reduced-motion: reduce) {
+  .swatch:hover { transform: none; }
 }

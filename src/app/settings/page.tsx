@@ -58,7 +58,10 @@ export default async function SettingsPage({
           <h2>Connected accounts</h2>
           {accounts.length === 0 && <p className="empty">None yet.</p>}
           <div className="rowlist">
-            {accounts.map((a) => <AccountRow key={a.id} account={a} />)}
+            {accounts.map((a) => (
+              <AccountRow key={a.id} account={a}
+                          taken={accounts.filter((o) => o.id !== a.id).map((o) => o.color)} />
+            ))}
           </div>
 
           <form action="/api/auth/google/start" method="get"

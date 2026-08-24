@@ -101,11 +101,35 @@ export function PrepSheet({ sheet }: { sheet: Sheet }) {
             <ul>{sheet.triggers.map((t, i) => <li key={i}>{t}</li>)}</ul>
           </section>
 
+          {sheet.routing && sheet.routing.length > 0 && (
+            <section className="card">
+              <h2>Which template? — routing table</h2>
+              <p className="prep-route-lead">
+                Read the problem, find the row, write that skeleton. Picking right is most of the battle.
+              </p>
+              <div className="prep-routes">
+                {sheet.routing.map((r) => (
+                  <div className="prep-route" key={r.signal}>
+                    <span className="prep-route-id">{r.use}</span>
+                    <div>
+                      <div className="prep-route-sig">{r.signal}</div>
+                      <div className="prep-route-why">{r.why}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="card">
-            <h2>Template</h2>
+            <h2>Templates</h2>
             {sheet.template.map((t) => (
               <div className="prep-tpl" key={t.label}>
-                <h3>{t.label}</h3>
+                <h3>
+                  {t.id && <span className="prep-tpl-id">{t.id}</span>}
+                  {t.label}
+                </h3>
+                {t.when && <p className="prep-tpl-when">{t.when}</p>}
                 <pre><code>{t.code}</code></pre>
                 {t.note && <p className="prep-note">{t.note}</p>}
               </div>
@@ -115,6 +139,21 @@ export function PrepSheet({ sheet }: { sheet: Sheet }) {
               {sheet.complexity.note ? ` — ${sheet.complexity.note}` : ''}
             </p>
           </section>
+
+          {sheet.walkthrough && (
+            <section className="card">
+              <h2>{sheet.walkthrough.title}</h2>
+              <ol className="prep-steps">
+                {sheet.walkthrough.steps.map((st) => (
+                  <li key={st.label}>
+                    <h3>{st.label}</h3>
+                    <p>{st.body}</p>
+                    {st.code && <pre><code>{st.code}</code></pre>}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
 
           <div className="card">
             <Sections sections={sheet.sections} />

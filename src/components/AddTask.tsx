@@ -32,6 +32,9 @@ export function AddTask() {
   const [newListName, setNewListName] = useState('');
   const newListRef = useRef<HTMLInputElement>(null);
 
+  /** Confirmation of the last successful add, shown after the form closes. */
+  const [flash, setFlash] = useState<{ title: string; where: string } | null>(null);
+
   // Fetched only when the form opens — it costs one Google call per connected
   // account, and most page views never open it.
   useEffect(() => {
@@ -102,9 +105,26 @@ export function AddTask() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? 'Could not create task');
 
-      // Keep the form open with the same account/list — adding several in a row
-      // is the common case.
+      // Name the destination from the server's echo of the created task, not
+      // from local form state. If Google filed it somewhere else — the default
+      // list when none was picked, say — the message has to say where it
+      // actually went, or the confirmation is a lie that looks like a success.
+      const accountName = accountId
+        ? (currentAccount?.account.label ?? currentAccount?.account.email ?? 'your account')
+        : 'this dashboard';
+      const listName = data.task?.project_name
+        ?? (creatingList ? newListName.trim() : lists.find((l) => l.id === targetList)?.title);
+
+      setFlash({
+        title: data.task?.title ?? title,
+        where: accountId && listName ? `${accountName} · ${listName}` : accountName,
+      });
+
+      // Close, because a form that clears itself and stays open looks identical
+      // whether the task saved or silently failed. Closing plus a named
+      // confirmation is unambiguous.
       setTitle(''); setNotes(''); setDue('');
+      setOpen(false);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -114,7 +134,21 @@ export function AddTask() {
   }
 
   if (!open) {
-    return <button className="btn" onClick={() => setOpen(true)}>+ Add task</button>;
+    return (
+      <span className="addtask-closed">
+        {flash && (
+          <span className="addflash" role="status">
+            <span className="addflash-tick" aria-hidden>✓</span>
+            Added <strong>{flash.title}</strong> to {flash.where}
+            <button className="iconbtn" type="button" aria-label="Dismiss"
+                    onClick={() => setFlash(null)}>✕</button>
+          </span>
+        )}
+        <button className="btn" onClick={() => { setFlash(null); setOpen(true); }}>
+          + Add task
+        </button>
+      </span>
+    );
   }
 
   return (
