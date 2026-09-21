@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#121211',
-    theme_color: '#121211',
+    background_color: '#F5EFE4',
+    theme_color: '#F5EFE4',
     categories: ['productivity'],
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -25,6 +25,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     shortcuts: [
+      { name: 'Met someone', url: '/people?add=1' },
       { name: 'Today', url: '/' },
       { name: 'Calendar', url: '/calendar' },
       { name: 'Tasks', url: '/tasks' },

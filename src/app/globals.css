@@ -873,3 +873,25 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .swatch:hover { transform: none; }
 }
+
+/* ------------------------------------------------- floating add (mobile) */
+/* Opens the People quick-add from any tab. Hidden on desktop, where the
+   sidebar and the People header button are always in reach. */
+.fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 30;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #C8452F;
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28);
+}
+.fab svg { width: 26px; height: 26px; }
+.fab:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 3px; }
+@media (max-width: 760px) { .fab { display: inline-flex; } }

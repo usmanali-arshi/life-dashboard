@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { FloatingAdd } from '@/components/FloatingAdd';
 import { RegisterSW } from '@/components/RegisterSW';
 import { Sidebar } from '@/components/Sidebar';
 import { ENABLE_GMAIL } from '@/lib/env';
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Sidebar enableGmail={ENABLE_GMAIL} />
           <main className="main">{children}</main>
         </div>
+        <FloatingAdd />
         <RegisterSW />
       </body>
     </html>
