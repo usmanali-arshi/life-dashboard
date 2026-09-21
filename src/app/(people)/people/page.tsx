@@ -25,7 +25,9 @@ export default async function PeoplePage() {
     listContacts(host), listIndustries(host), listPlaces(host),
   ]);
   const placeName = new Map(places.map((p) => [p.id, p.name]));
-  const lastPlace = contacts.find((c) => c.place_id)?.place_id ?? null;
+  const lastPlaceId = contacts.find((c) => c.place_id)?.place_id;
+  const lastPlace = lastPlaceId && placeName.has(lastPlaceId)
+    ? { placeId: lastPlaceId, name: placeName.get(lastPlaceId)! } : null;
 
   return (
     <div className="people">
@@ -38,7 +40,7 @@ export default async function PeoplePage() {
           <QuickAddSheet
             industries={industries}
             existingNames={contacts.map((c) => c.name)}
-            defaultPlace={lastPlace ? placeName.get(lastPlace) ?? null : null}
+            defaultPlace={lastPlace}
             onCreate={createContactAction}
           />
         </Suspense>

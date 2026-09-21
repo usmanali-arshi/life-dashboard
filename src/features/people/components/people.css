@@ -117,6 +117,28 @@ textarea.pp-input { resize: vertical; line-height: 1.4; }
 .pp-chip.dashed { border-style: dashed; background: transparent; color: var(--pp-muted); }
 .pp-chip.dashed:hover { color: var(--pp-ink); border-color: var(--pp-ink); }
 
+/* Place autocomplete */
+.pp-combo { position: relative; }
+.pp-combo-tick {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--pp-accent); font-weight: 700; pointer-events: none;
+}
+.pp-combo-hint { display: block; margin-top: 4px; font-size: 12px; color: var(--pp-muted); }
+.pp-combo-list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 5;
+  margin: 0; padding: 6px; list-style: none; max-height: 260px; overflow: auto;
+  background: var(--pp-card); color: #1F1B16; border: 1px solid var(--pp-line); border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+.pp-combo-list li[role='option'] {
+  display: flex; flex-direction: column; gap: 1px; min-height: 44px; justify-content: center;
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+}
+.pp-combo-list li.is-active { background: #F5EFE4; }
+.pp-combo-main { font-size: 15px; }
+.pp-combo-sub { font-size: 12px; color: #6B6257; }
+.pp-combo-credit { font-size: 10px; color: #9a8f82; margin-top: 3px; letter-spacing: 0.02em; }
+
 /* Sheet: modal on desktop, bottom sheet on phone. */
 .pp-scrim {
   position: fixed; inset: 0; z-index: 50; background: rgba(31, 27, 22, 0.45);

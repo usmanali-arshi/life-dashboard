@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ContactInput } from '../actions';
 import type { ActionResult, Contact, Industry } from '../types';
+import { PlaceInput, type PlaceValue } from './PlaceInput';
 
 type Optional = 'industry' | 'role' | 'company' | 'instagram' | 'linkedin' | 'phone';
 const OPTIONAL: { key: Optional; label: string }[] = [
@@ -23,7 +24,7 @@ const dayKey = (offsetDays = 0) =>
 interface Props {
   industries: Industry[];
   existingNames: string[];
-  defaultPlace: string | null;
+  defaultPlace: PlaceValue | null;
   onCreate: (input: ContactInput) => Promise<ActionResult<Contact>>;
 }
 
@@ -38,7 +39,7 @@ export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreat
   const [name, setName] = useState('');
   const [when, setWhen] = useState<'today' | 'yesterday' | 'date'>('today');
   const [date, setDate] = useState(dayKey());
-  const [place, setPlace] = useState(defaultPlace ?? '');
+  const [place, setPlace] = useState<PlaceValue | null>(defaultPlace);
   const [notes, setNotes] = useState('');
   const [shown, setShown] = useState<Set<Optional>>(new Set());
   const [industryId, setIndustryId] = useState('');
@@ -97,7 +98,9 @@ export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreat
   async function save(addAnother: boolean) {
     setBusy(true); setError(null);
     const res = await onCreate({
-      name, met_on: metOn(), place_name: place,
+      name, met_on: metOn(),
+      place_id: place?.placeId ?? null,
+      place_name: place?.placeId ? null : place?.name ?? null,
       industry_id: industryId && industryId !== NEW_INDUSTRY ? industryId : null,
       industry_name: industryId === NEW_INDUSTRY ? industryName : null,
       job_title: role, company, instagram, linkedin_url: linkedin, phone, notes,
@@ -168,11 +171,12 @@ export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreat
               )}
             </fieldset>
 
-            <label className="pp-field">
-              <span>Where</span>
-              <input className="pp-input" value={place} placeholder="Bar, party, office…"
-                     onChange={(e) => setPlace(e.target.value)} />
-            </label>
+            <div className="pp-field">
+              <span id="pp-where-label">Where</span>
+              <div aria-labelledby="pp-where-label">
+                <PlaceInput value={place} onChange={setPlace} placeholder="Bar, party, office…" />
+              </div>
+            </div>
 
             <label className="pp-field">
               <span>Notes</span>

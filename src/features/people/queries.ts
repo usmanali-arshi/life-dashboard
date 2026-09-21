@@ -33,6 +33,16 @@ export async function listPlaces(host: PeopleHost): Promise<Place[]> {
   return (data ?? []) as Place[];
 }
 
+/** Own places matching a prefix/substring, for the autocomplete dropdown. */
+export async function searchPlaces(host: PeopleHost, q: string, limit = 5): Promise<Place[]> {
+  const t = q.trim();
+  if (!t) return [];
+  const { data, error } = await people(host).from('places').select('*')
+    .ilike('name', `%${t.replace(/[%_]/g, '')}%`).order('name').limit(limit);
+  if (error) throw error;
+  return (data ?? []) as Place[];
+}
+
 /** Seeds the starter industries for the signed-in user if they have none. */
 export async function ensureIndustries(host: PeopleHost): Promise<void> {
   const { error } = await people(host).rpc('seed_default_industries');
