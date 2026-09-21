@@ -36,7 +36,7 @@ create table if not exists people.contacts (
   met_on        date not null,                 -- floating date, see §4 of context doc
   place_id      uuid references people.places(id) on delete set null,
   industry_id   uuid references people.industries(id) on delete set null,
-  current_role  text,
+  job_title     text,
   company       text,
   instagram     text,                          -- handle without @, render the URL
   linkedin_url  text,
@@ -45,7 +45,7 @@ create table if not exists people.contacts (
   search_tsv    tsvector generated always as (
                   to_tsvector('simple',
                     coalesce(name,'') || ' ' || coalesce(company,'') || ' ' ||
-                    coalesce(current_role,'') || ' ' || coalesce(notes,''))) stored,
+                    coalesce(job_title,'') || ' ' || coalesce(notes,''))) stored,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -115,22 +115,23 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- seed_default_industries: called once per user on first visit to the People
--- tab if they have no industries yet.
+-- tab if they have no industries yet. Takes no argument and seeds only for
+-- auth.uid() so it can't be called on another user's behalf.
 -- ---------------------------------------------------------------------------
-create or replace function people.seed_default_industries(p_user_id uuid) returns void
+create or replace function people.seed_default_industries() returns void
 security invoker
 language plpgsql as $$
 begin
-  if not exists (select 1 from people.industries where user_id = p_user_id) then
+  if not exists (select 1 from people.industries where user_id = auth.uid()) then
     insert into people.industries (user_id, name)
     values
-      (p_user_id, 'Tech'),
-      (p_user_id, 'Finance'),
-      (p_user_id, 'VC'),
-      (p_user_id, 'Media'),
-      (p_user_id, 'Fashion'),
-      (p_user_id, 'Food & Bev'),
-      (p_user_id, 'Academia')
+      (auth.uid(), 'Tech'),
+      (auth.uid(), 'Finance'),
+      (auth.uid(), 'VC'),
+      (auth.uid(), 'Media'),
+      (auth.uid(), 'Fashion'),
+      (auth.uid(), 'Food & Bev'),
+      (auth.uid(), 'Academia')
     on conflict (user_id, name) do nothing;
   end if;
 end;

@@ -78,7 +78,7 @@ create table people.contacts (
   met_on        date not null,                 -- floating date, see §4 of context doc
   place_id      uuid references people.places(id) on delete set null,
   industry_id   uuid references people.industries(id) on delete set null,
-  current_role  text,
+  job_title     text,
   company       text,
   instagram     text,                          -- handle without @, render the URL
   linkedin_url  text,
@@ -87,7 +87,7 @@ create table people.contacts (
   search_tsv    tsvector generated always as (
                   to_tsvector('simple',
                     coalesce(name,'') || ' ' || coalesce(company,'') || ' ' ||
-                    coalesce(current_role,'') || ' ' || coalesce(notes,''))) stored,
+                    coalesce(job_title,'') || ' ' || coalesce(notes,''))) stored,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
