@@ -28,6 +28,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   industries: Industry[];
+  industryColor: Map<string, number>;
   existingNames: string[];
   /** Create mode when absent. */
   initial?: ContactSheetInitial;
@@ -40,7 +41,7 @@ interface Props {
 }
 
 export function ContactSheet({
-  open, onClose, industries, existingNames, initial, defaultPlace = null, onSubmit, onPhoto, onSaved,
+  open, onClose, industries, industryColor, existingNames, initial, defaultPlace = null, onSubmit, onPhoto, onSaved,
 }: Props) {
   const editing = Boolean(initial);
   const c = initial?.contact;
@@ -216,7 +217,7 @@ export function ContactSheet({
                 const on = industryId === i.id;
                 return (
                   <button key={i.id} type="button" aria-pressed={on}
-                          className={on ? 'pp-chip is-on' : 'pp-chip'}
+                          className={`pp-chip ind-${industryColor.get(i.id) ?? 1}${on ? ' is-on' : ''}`}
                           onClick={() => setIndustryId(on ? '' : i.id)}>
                     {i.name}
                   </button>

@@ -15,6 +15,7 @@ interface Props {
   contact: Contact;
   placeName: string | null;
   industryName: string | null;
+  industryColor?: number | null;
   photoUrl?: string | null;
   href?: string;
   /** Larger, untilted-by-default variant for the drawer header. */
@@ -22,7 +23,7 @@ interface Props {
   tilt?: number;
 }
 
-export function Polaroid({ contact, placeName, industryName, photoUrl, href, size = 'wall', tilt }: Props) {
+export function Polaroid({ contact, placeName, industryName, industryColor, photoUrl, href, size = 'wall', tilt }: Props) {
   const deg = tilt ?? rotation(contact.id);
   const body = (
     <>
@@ -38,7 +39,7 @@ export function Polaroid({ contact, placeName, industryName, photoUrl, href, siz
           {placeName ? `${placeName} · ` : ''}{fmtMetOn(contact.met_on)}
         </span>
       </span>
-      {industryName && <span className="pp-pill">{industryName}</span>}
+      {industryName && <span className={`pp-pill ind-${industryColor ?? 1}`}>{industryName}</span>}
     </>
   );
   const cls = `pp-polaroid ${size === 'drawer' ? 'is-large' : ''}`;

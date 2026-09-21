@@ -10,6 +10,7 @@ import type { PlaceValue } from './PlaceInput';
 
 interface Props {
   industries: Industry[];
+  industryColor: Map<string, number>;
   existingNames: string[];
   defaultPlace: PlaceValue | null;
   onCreate: (input: ContactInput) => Promise<ActionResult<Contact>>;
@@ -18,7 +19,7 @@ interface Props {
 }
 
 /** The "Met someone" button plus the create sheet; also opens on ?add=1. */
-export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreate, setPhoto, removePhoto }: Props) {
+export function QuickAddSheet({ industries, industryColor, existingNames, defaultPlace, onCreate, setPhoto, removePhoto }: Props) {
   const onPhoto = (id: string, blob: Blob | null) => {
     if (!blob) return removePhoto(id);
     const fd = new FormData();
@@ -61,7 +62,7 @@ export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreat
       {open && (
         <ContactSheet
           open onClose={close}
-          industries={industries} existingNames={existingNames} defaultPlace={defaultPlace}
+          industries={industries} industryColor={industryColor} existingNames={existingNames} defaultPlace={defaultPlace}
           onSubmit={onCreate} onPhoto={onPhoto}
           onSaved={(c, addAnother, warning) => {
             setFlash(warning ?? `Added ${c.name}`);

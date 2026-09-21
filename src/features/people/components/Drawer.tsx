@@ -17,6 +17,7 @@ interface Props {
   alsoMet: { id: string; name: string }[];
   photoUrl: string | null;
   industries: Industry[];
+  industryColor: Map<string, number>;
   existingNames: string[];
   onUpdate: (id: string, input: ContactInput) => Promise<ActionResult<Contact>>;
   onDelete: (id: string) => Promise<ActionResult<void>>;
@@ -26,7 +27,7 @@ interface Props {
 
 const IG = (h: string) => `https://instagram.com/${h}`;
 
-export function Drawer({ contact, place, industry, alsoMet, photoUrl, industries, existingNames, onUpdate, onDelete, setPhoto, removePhoto }: Props) {
+export function Drawer({ contact, place, industry, alsoMet, photoUrl, industries, industryColor, existingNames, onUpdate, onDelete, setPhoto, removePhoto }: Props) {
   const onPhoto = (id: string, blob: Blob | null) => {
     if (!blob) return removePhoto(id);
     const fd = new FormData();
@@ -95,7 +96,7 @@ export function Drawer({ contact, place, industry, alsoMet, photoUrl, industries
                   {contact.job_title}{contact.job_title && contact.company ? ' · ' : ''}{contact.company}
                 </p>
               )}
-              {industry && <span className="pp-pill">{industry.name}</span>}
+              {industry && <span className={`pp-pill ind-${industryColor.get(industry.id) ?? 1}`}>{industry.name}</span>}
             </div>
           </div>
 
@@ -163,7 +164,7 @@ export function Drawer({ contact, place, industry, alsoMet, photoUrl, industries
       {editing && (
         <ContactSheet
           open onClose={() => setEditing(false)}
-          industries={industries} existingNames={existingNames}
+          industries={industries} industryColor={industryColor} existingNames={existingNames}
           initial={{ contact, place: place ? { placeId: place.id, name: place.name } : null, photoUrl }}
           onSubmit={(input) => onUpdate(contact.id, input)} onPhoto={onPhoto}
           onSaved={(_c, _a, warning) => { setEditing(false); setError(warning ?? null); router.refresh(); }}

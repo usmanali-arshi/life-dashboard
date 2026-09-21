@@ -7,13 +7,14 @@ interface Props {
   contacts: Contact[];
   placeName: Map<string, string>;
   industryName: Map<string, string>;
+  industryColor: Map<string, number>;
   photoUrl: Map<string, string>;
   /** Current query string (without '?'), so opening a card keeps filters. */
   query: string;
   filtered: boolean;
 }
 
-export function Wall({ contacts, placeName, industryName, photoUrl, query, filtered }: Props) {
+export function Wall({ contacts, placeName, industryName, industryColor, photoUrl, query, filtered }: Props) {
   if (contacts.length === 0) {
     return (
       <div className="pp-empty">
@@ -49,6 +50,7 @@ export function Wall({ contacts, placeName, industryName, photoUrl, query, filte
                 key={c.id} contact={c} href={hrefFor(c.id)} photoUrl={photoUrl.get(c.id) ?? null}
                 placeName={c.place_id ? placeName.get(c.place_id) ?? null : null}
                 industryName={c.industry_id ? industryName.get(c.industry_id) ?? null : null}
+                industryColor={c.industry_id ? industryColor.get(c.industry_id) ?? null : null}
               />
             ))}
           </div>

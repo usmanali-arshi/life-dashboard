@@ -27,7 +27,7 @@ export function SearchInput({ value, onChange }: Props) {
       </svg>
       <span className="pp-sr">Search people</span>
       <input
-        type="search" value={text} placeholder="Who was that person from…"
+        type="search" value={text} placeholder="That stranger who became a friend…"
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter') onChange(text); }}
       />

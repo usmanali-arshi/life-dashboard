@@ -26,9 +26,10 @@ function whenRange(k: WhenKey): { from: string; to: string } {
 interface Props {
   places: Place[];
   industries: Industry[];
+  industryColor: Map<string, number>;
 }
 
-export function FilterBar({ places, industries }: Props) {
+export function FilterBar({ places, industries, industryColor }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -61,18 +62,26 @@ export function FilterBar({ places, industries }: Props) {
       <SearchInput value={q} onChange={(v) => update({ q: v || null })} />
 
       <div className="pp-filter-row">
-        <label className="pp-select">
-          <span className="pp-sr">Place</span>
+        <label className={place ? 'pp-select is-set' : 'pp-select'}>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11Z" /><circle cx="12" cy="10" r="2.2" />
+          </svg>
+          <span className="pp-sr">Where</span>
           <select value={place} onChange={(e) => update({ place: e.target.value || null })}>
-            <option value="">Any place</option>
+            <option value="">Where</option>
             {places.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </label>
 
-        <label className="pp-select">
+        <label className={when ? 'pp-select is-set' : 'pp-select'}>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+               strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <rect x="3" y="5" width="18" height="16" rx="2.5" /><path d="M3 10h18M8 3v4M16 3v4" />
+          </svg>
           <span className="pp-sr">When</span>
           <select value={when} onChange={(e) => setWhen(e.target.value)}>
-            <option value="">Any time</option>
+            <option value="">When</option>
             {WHEN.map((w) => <option key={w.key} value={w.key}>{w.label}</option>)}
           </select>
         </label>
@@ -82,7 +91,7 @@ export function FilterBar({ places, industries }: Props) {
             const on = industry === i.id;
             return (
               <button key={i.id} type="button" aria-pressed={on}
-                      className={on ? 'pp-chip is-on' : 'pp-chip'}
+                      className={`pp-chip ind-${industryColor.get(i.id) ?? 1}${on ? ' is-on' : ''}`}
                       onClick={() => update({ industry: on ? null : i.id })}>
                 {i.name}
               </button>

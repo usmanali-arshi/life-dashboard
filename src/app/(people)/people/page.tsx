@@ -7,6 +7,7 @@ import { peopleFontClass } from '@/features/people/fonts';
 import {
   ensureIndustries, getContact, listContacts, listContactsAtPlace, listIndustries, listPlaces, photoUrls,
 } from '@/features/people/queries';
+import { industryColors } from '@/features/people/components/visual';
 import type { SearchFilters } from '@/features/people/types';
 import { createPeopleHost } from '@/lib/people-host';
 import { requireUser } from '@/lib/supabase/server';
@@ -52,6 +53,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   const total = all ? all.length : contacts.length;
   const placeName = new Map(places.map((p) => [p.id, p.name]));
   const industryName = new Map(industries.map((i) => [i.id, i.name]));
+  const industryColor = industryColors(industries.map((i) => i.id));
   const existingNames = (all ?? contacts).map((c) => c.name);
 
   const lastPlaceId = (all ?? contacts).find((c) => c.place_id)?.place_id;
@@ -83,7 +85,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         </div>
         <Suspense>
           <QuickAddSheet
-            industries={industries} existingNames={existingNames}
+            industries={industries} industryColor={industryColor} existingNames={existingNames}
             defaultPlace={lastPlace} onCreate={createContactAction}
             setPhoto={setContactPhotoAction} removePhoto={removeContactPhotoAction}
           />
@@ -91,10 +93,10 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       </header>
 
       <Suspense>
-        <FilterBar places={places} industries={industries} />
+        <FilterBar places={places} industries={industries} industryColor={industryColor} />
       </Suspense>
 
-      <Wall contacts={contacts} placeName={placeName} industryName={industryName} photoUrl={photos}
+      <Wall contacts={contacts} placeName={placeName} industryName={industryName} industryColor={industryColor} photoUrl={photos}
             query={query} filtered={filtered} />
 
       {person && (
@@ -104,7 +106,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             contact={person} place={personPlace}
             industry={person.industry_id ? industries.find((i) => i.id === person.industry_id) ?? null : null}
             alsoMet={alsoMet} photoUrl={photos.get(person.id) ?? null}
-            industries={industries} existingNames={existingNames}
+            industries={industries} industryColor={industryColor} existingNames={existingNames}
             onUpdate={updateContactAction} onDelete={deleteContactAction}
             setPhoto={setContactPhotoAction} removePhoto={removeContactPhotoAction}
           />
