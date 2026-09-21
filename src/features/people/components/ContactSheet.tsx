@@ -209,20 +209,31 @@ export function ContactSheet({
         )}
 
         {shown.has('industry') && (
-          <label className="pp-field">
-            <span>Industry</span>
-            <select className="pp-input" value={industryId} autoFocus={!editing}
-                    onChange={(e) => setIndustryId(e.target.value)}>
-              <option value="">—</option>
-              {industries.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
-              <option value={NEW_INDUSTRY}>+ New industry…</option>
-            </select>
+          <fieldset className="pp-field">
+            <legend>Industry</legend>
+            <div className="pp-chips" role="group">
+              {industries.map((i) => {
+                const on = industryId === i.id;
+                return (
+                  <button key={i.id} type="button" aria-pressed={on}
+                          className={on ? 'pp-chip is-on' : 'pp-chip'}
+                          onClick={() => setIndustryId(on ? '' : i.id)}>
+                    {i.name}
+                  </button>
+                );
+              })}
+              <button type="button" aria-pressed={industryId === NEW_INDUSTRY}
+                      className={industryId === NEW_INDUSTRY ? 'pp-chip is-on' : 'pp-chip dashed'}
+                      onClick={() => setIndustryId(industryId === NEW_INDUSTRY ? '' : NEW_INDUSTRY)}>
+                + New
+              </button>
+            </div>
             {industryId === NEW_INDUSTRY && (
-              <input className="pp-input" value={industryName} placeholder="Industry name"
-                     aria-label="New industry name" autoFocus
+              <input className="pp-input" value={industryName} placeholder="Type an industry…"
+                     aria-label="New industry name" autoFocus maxLength={40}
                      onChange={(e) => setIndustryName(e.target.value)} />
             )}
-          </label>
+          </fieldset>
         )}
         {shown.has('role') && (
           <label className="pp-field"><span>Role</span>

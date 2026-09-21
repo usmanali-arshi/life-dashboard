@@ -32,12 +32,9 @@
   background-image: radial-gradient(var(--pp-grid) 1px, transparent 1px);
   background-size: 24px 24px;
   /* Cancel .main's padding so the paper reaches the edges, then restore it inside. */
-  margin: -28px -32px calc(-48px - env(safe-area-inset-bottom));
-  padding: 28px 32px calc(48px + env(safe-area-inset-bottom));
+  margin: calc(-1 * var(--main-pt)) calc(-1 * var(--main-px)) calc(-1 * var(--main-pb));
+  padding: var(--main-pt) var(--main-px) var(--main-pb);
   min-height: 100vh;
-}
-@media (max-width: 760px) {
-  .people { margin: -18px -16px -48px; padding: 18px 16px 48px; }
 }
 
 @media (prefers-color-scheme: dark) {

@@ -128,26 +128,36 @@ a { color: inherit; }
 .sidebar .grow { flex: 1; }
 
 .main {
-  padding: 28px 32px calc(48px + env(safe-area-inset-bottom));
+  /* Exposed as variables so full-bleed pages (People) can cancel and restore them. */
+  --main-pt: 28px;
+  --main-px: 32px;
+  --main-pb: calc(48px + env(safe-area-inset-bottom));
+  padding: var(--main-pt) var(--main-px) var(--main-pb);
   max-width: 1280px;
   min-width: 0;
 }
 
-/* Sidebar collapses to a top bar on phones. */
+/* Sidebar becomes a fixed bottom tab bar on phones. */
 @media (max-width: 760px) {
+  :root { --tabbar-h: 54px; }
   .app { grid-template-columns: 1fr; }
   .sidebar {
-    position: static; height: auto; flex-direction: row;
-    gap: 2px; overflow-x: auto; align-items: center;
-    /* Installed iOS app draws under the status bar; keep the tabs below it. */
-    padding: calc(10px + env(safe-area-inset-top)) 8px 10px;
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 20;
+    height: auto; flex-direction: row; gap: 2px; align-items: center;
+    /* Installed iOS app draws under the home indicator; keep the tabs above it. */
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--sidebar-hover);
   }
   .sidebar .brand { display: none; }
   .sidebar .grow { flex: 0; }
-  .sidebar a { padding: 9px 8px; white-space: nowrap; flex: 1; justify-content: center; }
+  .sidebar a { padding: 10px 6px; white-space: nowrap; flex: 1; justify-content: center; min-height: 42px; }
   .sidebar a span { display: none; }
-  .sidebar a svg { width: 19px; height: 19px; }
-  .main { padding: 18px 16px 48px; }
+  .sidebar a svg { width: 22px; height: 22px; }
+  .main {
+    --main-pt: calc(16px + env(safe-area-inset-top));
+    --main-px: 16px;
+    --main-pb: calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ---------------------------------------------------------------- header */
@@ -882,7 +892,7 @@ a { color: inherit; }
   display: none;
   position: fixed;
   right: 18px;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: calc(var(--tabbar-h, 0px) + 16px + env(safe-area-inset-bottom));
   z-index: 30;
   width: 56px;
   height: 56px;
