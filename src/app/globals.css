@@ -138,12 +138,13 @@ a { color: inherit; }
   .app { grid-template-columns: 1fr; }
   .sidebar {
     position: static; height: auto; flex-direction: row;
-    gap: 2px; overflow-x: auto; padding: 10px 12px;
-    align-items: center;
+    gap: 2px; overflow-x: auto; align-items: center;
+    /* Installed iOS app draws under the status bar; keep the tabs below it. */
+    padding: calc(10px + env(safe-area-inset-top)) 8px 10px;
   }
   .sidebar .brand { display: none; }
   .sidebar .grow { flex: 0; }
-  .sidebar a { padding: 9px 11px; white-space: nowrap; }
+  .sidebar a { padding: 9px 8px; white-space: nowrap; flex: 1; justify-content: center; }
   .sidebar a span { display: none; }
   .sidebar a svg { width: 19px; height: 19px; }
   .main { padding: 18px 16px 48px; }
