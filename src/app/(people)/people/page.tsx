@@ -1,6 +1,10 @@
-import { ensureIndustries, listContacts } from '@/features/people/queries';
+import { Suspense } from 'react';
+import { QuickAddSheet } from '@/features/people/components/QuickAddSheet';
+import { ensureIndustries, listContacts, listIndustries, listPlaces } from '@/features/people/queries';
 import { createPeopleHost } from '@/lib/people-host';
 import { requireUser } from '@/lib/supabase/server';
+import { createContactAction } from './actions';
+import '@/features/people/components/people.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,31 +21,42 @@ export default async function PeoplePage() {
 
   const host = await createPeopleHost();
   await ensureIndustries(host);
-  const contacts = await listContacts(host);
+  const [contacts, industries, places] = await Promise.all([
+    listContacts(host), listIndustries(host), listPlaces(host),
+  ]);
+  const placeName = new Map(places.map((p) => [p.id, p.name]));
+  const lastPlace = contacts.find((c) => c.place_id)?.place_id ?? null;
 
   return (
-    <>
+    <div className="people">
       <header className="pagehead">
         <div>
           <h1>People</h1>
-          <div className="date">{contacts.length} {contacts.length === 1 ? 'person' : 'people'}</div>
+          <div className="pp-sub">{contacts.length} {contacts.length === 1 ? 'person' : 'people'}</div>
         </div>
+        <Suspense>
+          <QuickAddSheet
+            industries={industries}
+            existingNames={contacts.map((c) => c.name)}
+            defaultPlace={lastPlace ? placeName.get(lastPlace) ?? null : null}
+            onCreate={createContactAction}
+          />
+        </Suspense>
       </header>
       {contacts.length === 0 ? (
-        <div className="card"><p className="empty">No one yet.</p></div>
+        <p className="pp-sub">No one yet.</p>
       ) : (
-        <div className="card">
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {contacts.map((c) => (
-              <li key={c.id}>
-                {c.name} · {c.met_on}
-                {c.company && ` · ${c.company}`}
-                {c.job_title && ` · ${c.job_title}`}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
+          {contacts.map((c) => (
+            <li key={c.id}>
+              <strong>{c.name}</strong> · {c.met_on}
+              {c.place_id && placeName.get(c.place_id) && ` · ${placeName.get(c.place_id)}`}
+              {c.company && ` · ${c.company}`}
+              {c.job_title && ` · ${c.job_title}`}
+            </li>
+          ))}
+        </ul>
       )}
-    </>
+    </div>
   );
 }

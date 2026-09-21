@@ -35,6 +35,9 @@ export interface Contact {
   updated_at: string;
 }
 
+/** Shape every host-side action returns; errors carry a message the UI can show. */
+export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
 export interface SearchFilters {
   q?: string;
   placeId?: string;

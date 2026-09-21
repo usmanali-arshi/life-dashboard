@@ -1,0 +1,143 @@
+/* People tab tokens — see docs/people-feature.md §4. Scoped under .people so the
+   paper/ink palette never leaks into the rest of the dashboard. */
+
+.people {
+  --pp-paper: #F5EFE4;
+  --pp-grid: #E3D8C5;
+  --pp-surface: #FBF8F2;
+  --pp-card: #FFFFFF;
+  --pp-ink: #1F1B16;
+  --pp-muted: #6B6257;
+  --pp-line: #E4DACA;
+  --pp-accent: #C8452F;
+  --pp-tape: rgba(246, 227, 168, 0.85);
+  --pp-tint-1: #F4C9B8;
+  --pp-tint-2: #CFE3D4;
+  --pp-tint-3: #D6D9F2;
+  --pp-tint-4: #F6E3A8;
+  --pp-tint-5: #F2CBDD;
+  --pp-tint-6: #C9E4EE;
+
+  --pp-heading: var(--font-fraunces, Georgia, 'Times New Roman', serif);
+  --pp-body: var(--font-dm-sans, ui-sans-serif, system-ui, sans-serif);
+  --pp-hand: var(--font-caveat, 'Segoe Print', 'Bradley Hand', cursive);
+
+  color: var(--pp-ink);
+  font-family: var(--pp-body);
+  background-color: var(--pp-paper);
+  background-image: radial-gradient(var(--pp-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  /* Cancel .main's padding so the paper reaches the edges, then restore it inside. */
+  margin: -28px -32px calc(-48px - env(safe-area-inset-bottom));
+  padding: 28px 32px calc(48px + env(safe-area-inset-bottom));
+  min-height: 100vh;
+}
+@media (max-width: 760px) {
+  .people { margin: -18px -16px -48px; padding: 18px 16px 48px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .people {
+    --pp-paper: #1A1714;
+    --pp-grid: #2A2520;
+    --pp-surface: #24201B;
+    --pp-ink: #F2EBDF;
+    --pp-muted: #A89E90;
+    --pp-line: #3A342D;
+    --pp-accent: #E0674F;
+  }
+}
+:root[data-theme='dark'] .people {
+  --pp-paper: #1A1714;
+  --pp-grid: #2A2520;
+  --pp-surface: #24201B;
+  --pp-ink: #F2EBDF;
+  --pp-muted: #A89E90;
+  --pp-line: #3A342D;
+  --pp-accent: #E0674F;
+}
+
+.people h1, .people h2 { font-family: var(--pp-heading); font-weight: 600; letter-spacing: -0.01em; }
+.people .pp-sub { font-family: var(--pp-hand); font-size: 20px; color: var(--pp-muted); margin-top: 2px; }
+
+/* Buttons — 44px minimum touch target. */
+.pp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid transparent;
+  background: var(--pp-accent); color: #fff; font: inherit; font-weight: 600; font-size: 15px;
+  cursor: pointer;
+}
+.pp-btn:hover { filter: brightness(0.94); }
+.pp-btn:disabled { opacity: 0.55; cursor: default; filter: none; }
+.pp-btn.secondary { background: var(--pp-card); color: var(--pp-ink); border-color: var(--pp-line); }
+.pp-btn:focus-visible, .pp-input:focus-visible, .pp-chip:focus-visible, .pp-iconbtn:focus-visible,
+.pp-seg button:focus-visible {
+  outline: 2px solid var(--pp-accent); outline-offset: 2px;
+}
+.pp-iconbtn {
+  min-width: 44px; min-height: 44px; border: 0; background: transparent; color: var(--pp-muted);
+  font: inherit; font-size: 16px; cursor: pointer; border-radius: 999px;
+}
+.pp-iconbtn:hover { background: color-mix(in srgb, var(--pp-ink) 6%, transparent); }
+
+.pp-addwrap { display: inline-flex; align-items: center; gap: 10px; }
+.pp-flash {
+  display: inline-flex; align-items: center; gap: 4px; padding-left: 12px;
+  border-radius: 999px; background: var(--pp-surface); border: 1px solid var(--pp-line);
+  font-size: 14px; color: var(--pp-ink);
+}
+
+/* Inputs */
+.pp-input {
+  width: 100%; min-height: 44px; padding: 10px 14px; border-radius: 12px;
+  border: 1px solid var(--pp-line); background: var(--pp-card); color: #1F1B16;
+  font: inherit; font-size: 16px;
+}
+.pp-input::placeholder { color: #9a8f82; }
+textarea.pp-input { resize: vertical; line-height: 1.4; }
+.pp-field { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.pp-field > span, .pp-field > legend {
+  font-size: 13px; font-weight: 600; color: var(--pp-muted); padding: 0;
+}
+.pp-warn { margin: -4px 0 0; font-size: 13px; color: var(--pp-muted); }
+.pp-error { margin: 0; font-size: 14px; color: var(--pp-accent); font-weight: 600; }
+
+.pp-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.pp-seg button {
+  min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--pp-line);
+  background: var(--pp-card); color: #1F1B16; font: inherit; font-size: 14px; cursor: pointer;
+}
+.pp-seg button.is-on { background: var(--pp-ink); color: var(--pp-paper); border-color: var(--pp-ink); }
+
+.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-chip {
+  min-height: 36px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 13px;
+  border: 1px solid var(--pp-line); background: var(--pp-card); color: #1F1B16; cursor: pointer;
+}
+.pp-chip.dashed { border-style: dashed; background: transparent; color: var(--pp-muted); }
+.pp-chip.dashed:hover { color: var(--pp-ink); border-color: var(--pp-ink); }
+
+/* Sheet: modal on desktop, bottom sheet on phone. */
+.pp-scrim {
+  position: fixed; inset: 0; z-index: 50; background: rgba(31, 27, 22, 0.45);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.pp-sheet {
+  width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto;
+  background: var(--pp-surface); color: var(--pp-ink); border-radius: 20px;
+  border: 1px solid var(--pp-line); padding: 20px; display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  font-family: var(--pp-body);
+}
+.pp-sheet-head { display: flex; align-items: center; justify-content: space-between; }
+.pp-sheet-head h2 { margin: 0; font-size: 24px; }
+.pp-sheet-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .pp-scrim { align-items: flex-end; padding: 0; }
+  .pp-sheet {
+    width: 100%; max-height: 92vh; border-radius: 20px 20px 0 0; border-bottom: 0;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+  .pp-sheet-actions .pp-btn { flex: 1; }
+}
