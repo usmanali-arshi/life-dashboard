@@ -12,13 +12,24 @@ export async function listContacts(host: PeopleHost, f: SearchFilters = {}): Pro
     met_to: f.metTo ?? null,
   });
   if (error) throw error;
-  return (data ?? []) as Contact[];
+  // search_contacts orders by met_on only; break ties so same-day cards don't shuffle.
+  return ((data ?? []) as Contact[]).sort((a, b) =>
+    b.met_on.localeCompare(a.met_on) || b.created_at.localeCompare(a.created_at));
 }
 
 export async function getContact(host: PeopleHost, id: string): Promise<Contact | null> {
   const { data, error } = await people(host).from('contacts').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
   return data as Contact | null;
+}
+
+export async function listContactsAtPlace(
+  host: PeopleHost, placeId: string, excludeId: string, limit = 8,
+): Promise<Pick<Contact, 'id' | 'name'>[]> {
+  const { data, error } = await people(host).from('contacts').select('id,name')
+    .eq('place_id', placeId).neq('id', excludeId).order('met_on', { ascending: false }).limit(limit);
+  if (error) throw error;
+  return (data ?? []) as Pick<Contact, 'id' | 'name'>[];
 }
 
 export async function listIndustries(host: PeopleHost): Promise<Industry[]> {

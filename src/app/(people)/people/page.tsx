@@ -1,14 +1,25 @@
 import { Suspense } from 'react';
+import { Drawer } from '@/features/people/components/Drawer';
+import { FilterBar } from '@/features/people/components/FilterBar';
 import { QuickAddSheet } from '@/features/people/components/QuickAddSheet';
-import { ensureIndustries, listContacts, listIndustries, listPlaces } from '@/features/people/queries';
+import { Wall } from '@/features/people/components/Wall';
+import { peopleFontClass } from '@/features/people/fonts';
+import {
+  ensureIndustries, getContact, listContacts, listContactsAtPlace, listIndustries, listPlaces,
+} from '@/features/people/queries';
+import type { SearchFilters } from '@/features/people/types';
 import { createPeopleHost } from '@/lib/people-host';
 import { requireUser } from '@/lib/supabase/server';
-import { createContactAction } from './actions';
+import { createContactAction, deleteContactAction, updateContactAction } from './actions';
 import '@/features/people/components/people.css';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PeoplePage() {
+type Params = Record<string, string | string[] | undefined>;
+const str = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function PeoplePage({ searchParams }: { searchParams: Promise<Params> }) {
   const user = await requireUser();
   if (!user) {
     return (
@@ -19,45 +30,79 @@ export default async function PeoplePage() {
     );
   }
 
+  const sp = await searchParams;
+  const filters: SearchFilters = {
+    q: str(sp.q) || undefined,
+    placeId: str(sp.place) || undefined,
+    industryId: str(sp.industry) || undefined,
+    metFrom: YMD.test(str(sp.from)) ? str(sp.from) : undefined,
+    metTo: YMD.test(str(sp.to)) ? str(sp.to) : undefined,
+  };
+  const filtered = Boolean(filters.q || filters.placeId || filters.industryId || filters.metFrom || filters.metTo);
+  const personId = str(sp.person);
+
   const host = await createPeopleHost();
   await ensureIndustries(host);
-  const [contacts, industries, places] = await Promise.all([
-    listContacts(host), listIndustries(host), listPlaces(host),
+  const [contacts, industries, places, all] = await Promise.all([
+    listContacts(host, filters), listIndustries(host), listPlaces(host),
+    filtered ? listContacts(host) : null,
   ]);
+  const total = all ? all.length : contacts.length;
   const placeName = new Map(places.map((p) => [p.id, p.name]));
-  const lastPlaceId = contacts.find((c) => c.place_id)?.place_id;
+  const industryName = new Map(industries.map((i) => [i.id, i.name]));
+  const existingNames = (all ?? contacts).map((c) => c.name);
+
+  const lastPlaceId = (all ?? contacts).find((c) => c.place_id)?.place_id;
   const lastPlace = lastPlaceId && placeName.has(lastPlaceId)
     ? { placeId: lastPlaceId, name: placeName.get(lastPlaceId)! } : null;
 
+  const person = personId ? await getContact(host, personId) : null;
+  const personPlace = person?.place_id ? places.find((p) => p.id === person.place_id) ?? null : null;
+  const alsoMet = person && personPlace ? await listContactsAtPlace(host, personPlace.id, person.id) : [];
+
+  const query = new URLSearchParams(
+    Object.entries({ q: filters.q, place: filters.placeId, industry: filters.industryId,
+      when: str(sp.when), from: filters.metFrom, to: filters.metTo })
+      .filter((e): e is [string, string] => Boolean(e[1])),
+  ).toString();
+
+  const placesUsed = new Set(contacts.map((c) => c.place_id).filter(Boolean)).size;
+  const subtitle = filtered
+    ? `${contacts.length} of ${total} ${total === 1 ? 'person' : 'people'}`
+    : `${total} ${total === 1 ? 'person' : 'people'} · ${placesUsed} ${placesUsed === 1 ? 'place' : 'places'}`;
+
   return (
-    <div className="people">
-      <header className="pagehead">
+    <div className={`people ${peopleFontClass}`}>
+      <header className="pp-head">
         <div>
           <h1>People</h1>
-          <div className="pp-sub">{contacts.length} {contacts.length === 1 ? 'person' : 'people'}</div>
+          <div className="pp-sub">{subtitle}</div>
         </div>
         <Suspense>
           <QuickAddSheet
-            industries={industries}
-            existingNames={contacts.map((c) => c.name)}
-            defaultPlace={lastPlace}
-            onCreate={createContactAction}
+            industries={industries} existingNames={existingNames}
+            defaultPlace={lastPlace} onCreate={createContactAction}
           />
         </Suspense>
       </header>
-      {contacts.length === 0 ? (
-        <p className="pp-sub">No one yet.</p>
-      ) : (
-        <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
-          {contacts.map((c) => (
-            <li key={c.id}>
-              <strong>{c.name}</strong> · {c.met_on}
-              {c.place_id && placeName.get(c.place_id) && ` · ${placeName.get(c.place_id)}`}
-              {c.company && ` · ${c.company}`}
-              {c.job_title && ` · ${c.job_title}`}
-            </li>
-          ))}
-        </ul>
+
+      <Suspense>
+        <FilterBar places={places} industries={industries} />
+      </Suspense>
+
+      <Wall contacts={contacts} placeName={placeName} industryName={industryName}
+            query={query} filtered={filtered} />
+
+      {person && (
+        <Suspense>
+          <Drawer
+            key={person.id}
+            contact={person} place={personPlace}
+            industry={person.industry_id ? industries.find((i) => i.id === person.industry_id) ?? null : null}
+            alsoMet={alsoMet} industries={industries} existingNames={existingNames}
+            onUpdate={updateContactAction} onDelete={deleteContactAction}
+          />
+        </Suspense>
       )}
     </div>
   );
