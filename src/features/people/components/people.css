@@ -191,9 +191,19 @@ a.pp-polaroid:hover { transform: rotate(var(--tilt, 0deg)) translateY(-3px); box
   background: var(--pp-tape); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
 }
 .pp-photo {
-  aspect-ratio: 1; display: grid; place-items: center; border-radius: 2px;
+  position: relative; aspect-ratio: 1; display: grid; place-items: center; border-radius: 2px; overflow: hidden;
   font-family: var(--pp-heading); font-size: clamp(26px, 5vw, 40px); font-weight: 600; color: var(--pp-card-ink);
 }
+/* Initials stay underneath as the loading state; the photo covers them once it arrives. */
+.pp-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.pp-photo-row { display: flex; align-items: center; gap: 12px; }
+.pp-photo-thumb {
+  width: 72px; height: 72px; flex: none; border-radius: 6px; overflow: hidden; display: grid; place-items: center;
+  background: var(--pp-card); border: 1px solid var(--pp-line); color: var(--pp-muted);
+}
+.pp-photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pp-photo-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .pp-photo.tint-1 { background: var(--pp-tint-1); }
 .pp-photo.tint-2 { background: var(--pp-tint-2); }
 .pp-photo.tint-3 { background: var(--pp-tint-3); }

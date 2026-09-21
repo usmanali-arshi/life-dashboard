@@ -15,15 +15,24 @@ interface Props {
   place: Place | null;
   industry: Industry | null;
   alsoMet: { id: string; name: string }[];
+  photoUrl: string | null;
   industries: Industry[];
   existingNames: string[];
   onUpdate: (id: string, input: ContactInput) => Promise<ActionResult<Contact>>;
   onDelete: (id: string) => Promise<ActionResult<void>>;
+  setPhoto: (id: string, form: FormData) => Promise<ActionResult<Contact>>;
+  removePhoto: (id: string) => Promise<ActionResult<Contact>>;
 }
 
 const IG = (h: string) => `https://instagram.com/${h}`;
 
-export function Drawer({ contact, place, industry, alsoMet, industries, existingNames, onUpdate, onDelete }: Props) {
+export function Drawer({ contact, place, industry, alsoMet, photoUrl, industries, existingNames, onUpdate, onDelete, setPhoto, removePhoto }: Props) {
+  const onPhoto = (id: string, blob: Blob | null) => {
+    if (!blob) return removePhoto(id);
+    const fd = new FormData();
+    fd.append('photo', blob, 'photo.jpg');
+    return setPhoto(id, fd);
+  };
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -55,7 +64,7 @@ export function Drawer({ contact, place, industry, alsoMet, industries, existing
     setBusy(true); setError(null);
     const res = await onDelete(contact.id);
     setBusy(false);
-    if (!res.ok) { setError(res.error); setConfirming(false); return; }
+    if (!res.ok) { setError(`Couldn’t delete: ${res.error}`); setConfirming(false); return; }
     close();
     router.refresh();
   }
@@ -78,7 +87,7 @@ export function Drawer({ contact, place, industry, alsoMet, industries, existing
           </div>
 
           <div className="pp-drawer-hero">
-            <Polaroid contact={contact} placeName={place?.name ?? null} industryName={null} size="drawer" tilt={-3} />
+            <Polaroid contact={contact} placeName={place?.name ?? null} industryName={null} photoUrl={photoUrl} size="drawer" tilt={-3} />
             <div className="pp-drawer-id">
               <h2 id="pp-drawer-name">{contact.name}</h2>
               {(contact.job_title || contact.company) && (
@@ -130,7 +139,7 @@ export function Drawer({ contact, place, industry, alsoMet, industries, existing
             </div>
           )}
 
-          {error && <p className="pp-error" role="alert">Couldn’t delete: {error}</p>}
+          {error && <p className="pp-error" role="alert">{error}</p>}
 
           <div className="pp-drawer-foot">
             <button type="button" className="pp-btn secondary" onClick={() => setEditing(true)}>Edit</button>
@@ -155,9 +164,9 @@ export function Drawer({ contact, place, industry, alsoMet, industries, existing
         <ContactSheet
           open onClose={() => setEditing(false)}
           industries={industries} existingNames={existingNames}
-          initial={{ contact, place: place ? { placeId: place.id, name: place.name } : null }}
-          onSubmit={(input) => onUpdate(contact.id, input)}
-          onSaved={() => { setEditing(false); router.refresh(); }}
+          initial={{ contact, place: place ? { placeId: place.id, name: place.name } : null, photoUrl }}
+          onSubmit={(input) => onUpdate(contact.id, input)} onPhoto={onPhoto}
+          onSaved={(_c, _a, warning) => { setEditing(false); setError(warning ?? null); router.refresh(); }}
         />
       )}
     </>

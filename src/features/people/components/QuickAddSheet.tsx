@@ -13,10 +13,18 @@ interface Props {
   existingNames: string[];
   defaultPlace: PlaceValue | null;
   onCreate: (input: ContactInput) => Promise<ActionResult<Contact>>;
+  setPhoto: (id: string, form: FormData) => Promise<ActionResult<Contact>>;
+  removePhoto: (id: string) => Promise<ActionResult<Contact>>;
 }
 
 /** The "Met someone" button plus the create sheet; also opens on ?add=1. */
-export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreate }: Props) {
+export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreate, setPhoto, removePhoto }: Props) {
+  const onPhoto = (id: string, blob: Blob | null) => {
+    if (!blob) return removePhoto(id);
+    const fd = new FormData();
+    fd.append('photo', blob, 'photo.jpg');
+    return setPhoto(id, fd);
+  };
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -54,9 +62,9 @@ export function QuickAddSheet({ industries, existingNames, defaultPlace, onCreat
         <ContactSheet
           open onClose={close}
           industries={industries} existingNames={existingNames} defaultPlace={defaultPlace}
-          onSubmit={onCreate}
-          onSaved={(c, addAnother) => {
-            setFlash(`Added ${c.name}`);
+          onSubmit={onCreate} onPhoto={onPhoto}
+          onSaved={(c, addAnother, warning) => {
+            setFlash(warning ?? `Added ${c.name}`);
             if (!addAnother) close();
             router.refresh();
           }}

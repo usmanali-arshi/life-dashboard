@@ -5,12 +5,14 @@ import { QuickAddSheet } from '@/features/people/components/QuickAddSheet';
 import { Wall } from '@/features/people/components/Wall';
 import { peopleFontClass } from '@/features/people/fonts';
 import {
-  ensureIndustries, getContact, listContacts, listContactsAtPlace, listIndustries, listPlaces,
+  ensureIndustries, getContact, listContacts, listContactsAtPlace, listIndustries, listPlaces, photoUrls,
 } from '@/features/people/queries';
 import type { SearchFilters } from '@/features/people/types';
 import { createPeopleHost } from '@/lib/people-host';
 import { requireUser } from '@/lib/supabase/server';
-import { createContactAction, deleteContactAction, updateContactAction } from './actions';
+import {
+  createContactAction, deleteContactAction, removeContactPhotoAction, setContactPhotoAction, updateContactAction,
+} from './actions';
 import '@/features/people/components/people.css';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +59,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
     ? { placeId: lastPlaceId, name: placeName.get(lastPlaceId)! } : null;
 
   const person = personId ? await getContact(host, personId) : null;
+  const photos = await photoUrls(host, person && !contacts.some((c) => c.id === person.id) ? [...contacts, person] : contacts);
   const personPlace = person?.place_id ? places.find((p) => p.id === person.place_id) ?? null : null;
   const alsoMet = person && personPlace ? await listContactsAtPlace(host, personPlace.id, person.id) : [];
 
@@ -82,6 +85,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           <QuickAddSheet
             industries={industries} existingNames={existingNames}
             defaultPlace={lastPlace} onCreate={createContactAction}
+            setPhoto={setContactPhotoAction} removePhoto={removeContactPhotoAction}
           />
         </Suspense>
       </header>
@@ -90,7 +94,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         <FilterBar places={places} industries={industries} />
       </Suspense>
 
-      <Wall contacts={contacts} placeName={placeName} industryName={industryName}
+      <Wall contacts={contacts} placeName={placeName} industryName={industryName} photoUrl={photos}
             query={query} filtered={filtered} />
 
       {person && (
@@ -99,8 +103,10 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             key={person.id}
             contact={person} place={personPlace}
             industry={person.industry_id ? industries.find((i) => i.id === person.industry_id) ?? null : null}
-            alsoMet={alsoMet} industries={industries} existingNames={existingNames}
+            alsoMet={alsoMet} photoUrl={photos.get(person.id) ?? null}
+            industries={industries} existingNames={existingNames}
             onUpdate={updateContactAction} onDelete={deleteContactAction}
+            setPhoto={setContactPhotoAction} removePhoto={removeContactPhotoAction}
           />
         </Suspense>
       )}

@@ -15,19 +15,21 @@ interface Props {
   contact: Contact;
   placeName: string | null;
   industryName: string | null;
+  photoUrl?: string | null;
   href?: string;
   /** Larger, untilted-by-default variant for the drawer header. */
   size?: 'wall' | 'drawer';
   tilt?: number;
 }
 
-export function Polaroid({ contact, placeName, industryName, href, size = 'wall', tilt }: Props) {
+export function Polaroid({ contact, placeName, industryName, photoUrl, href, size = 'wall', tilt }: Props) {
   const deg = tilt ?? rotation(contact.id);
   const body = (
     <>
       <span className="pp-tape" aria-hidden />
       <span className={`pp-photo tint-${tintIndex(contact.id)}`} aria-hidden>
         {initials(contact.name)}
+        {photoUrl && <img src={photoUrl} alt="" loading="lazy" decoding="async" />}
       </span>
       <span className="pp-name">{contact.name}</span>
       <span className="pp-meta">

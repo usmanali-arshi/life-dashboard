@@ -227,6 +227,34 @@ Commit after each step once `next build` passes. Stop and hand back only at the 
 6. PWA manifest, icons, service worker, shortcut.
 7. ⏸ Usman pushes to `main`; verify on `life-dashboard-git-main-arshi8.vercel.app` (not a
    per-deploy hash URL).
+8. Photos (§8). Migration `0008_people_photos.sql`. ⏸ Usman runs it in the SQL Editor. Then
+   camera capture in the sheet, upload, photo on polaroid and drawer. Push as in step 7.
+
+## 8. Photos
+
+A selfie taken in the quick-add sheet becomes the polaroid image. Added after v1 shipped.
+
+- **Capture:** a camera chip among the optional chips. `<input type="file" accept="image/*"
+  capture="user">` opens the front camera directly on phones; on desktop it's a file picker.
+  The sheet shows the thumbnail immediately; the photo can be retaken or removed before save.
+  In the drawer, Edit offers the same control, so a photo can be added or replaced later.
+- **Auto-compress, invisibly:** before upload the page draws the image onto a canvas at max
+  800 px on the long edge and re-encodes as JPEG q0.82 (typically 60–150 KB). The user never
+  sees this step. EXIF orientation is honoured via `createImageBitmap(file, { imageOrientation:
+  'from-image' })`. Nothing larger than ~1 MB ever leaves the phone.
+- **Storage:** Supabase Storage, **private** bucket `people-photos`, object path
+  `<user_id>/<contact_id>.jpg`. RLS on `storage.objects` restricts every operation to objects
+  under the caller's own `auth.uid()` folder. Chosen over Vercel Blob / R2 because the auth
+  model is the one every People table already uses and the free tier (1 GB, 2 GB egress/mo)
+  covers thousands of photos at this size.
+- **Column:** `people.contacts.photo_path text` (the object path, not a URL). Purely additive.
+- **Serving:** signed URLs, ~1 h, generated server-side in one `createSignedUrls` batch per
+  page render for the visible contacts. Never a public bucket — these are other people's faces.
+- **Order of operations:** contact row first, then upload (the path needs the contact id), then
+  `update ... set photo_path`. If upload fails the contact still saves and the sheet says so
+  with a Retry on the card, rather than losing the entry. Deleting a contact removes the object.
+- **Polaroid:** photo fills the tinted square (`object-fit: cover`); initials remain the
+  fallback and the loading state.
 
 ## 7. Out of scope for v1
 
@@ -238,5 +266,4 @@ Commit after each step once `next build` passes. Stop and hand back only at the 
   always saves; task failure shows "Retry" on the card. Destination account + list picked in
   Settings. Migration adds `followup_task_external_id text` and `followup_status text check
   (pending|created|failed|done|skipped)`. No new OAuth scope needed.
-- Map view (places already store coordinates), Web view, photos (`photo_path` + Storage
-  bucket with RLS), CSV import, offline capture.
+- Map view (places already store coordinates), Web view, CSV import, offline capture.

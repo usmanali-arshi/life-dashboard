@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ContactInput } from '../actions';
 import { localDayKey } from '../dates';
 import type { ActionResult, Contact, Industry } from '../types';
+import { CameraIcon, PhotoInput, type PhotoChange } from './PhotoInput';
 import { PlaceInput, type PlaceValue } from './PlaceInput';
 
-type Optional = 'industry' | 'role' | 'company' | 'instagram' | 'linkedin' | 'phone';
+type Optional = 'photo' | 'industry' | 'role' | 'company' | 'instagram' | 'linkedin' | 'phone';
 const OPTIONAL: { key: Optional; label: string }[] = [
   { key: 'industry', label: 'Industry' },
   { key: 'role', label: 'Role' },
@@ -20,6 +21,7 @@ const NEW_INDUSTRY = '__new__';
 export interface ContactSheetInitial {
   contact: Contact;
   place: PlaceValue | null;
+  photoUrl: string | null;
 }
 
 interface Props {
@@ -31,12 +33,14 @@ interface Props {
   initial?: ContactSheetInitial;
   defaultPlace?: PlaceValue | null;
   onSubmit: (input: ContactInput) => Promise<ActionResult<Contact>>;
-  /** Called after a successful save; addAnother is true for "Save & add another". */
-  onSaved: (contact: Contact, addAnother: boolean) => void;
+  /** Uploads (blob) or removes (null) the photo once the contact row exists. */
+  onPhoto: (id: string, blob: Blob | null) => Promise<ActionResult<Contact>>;
+  /** Called after the contact saved; warning is set when the photo step failed. */
+  onSaved: (contact: Contact, addAnother: boolean, warning?: string) => void;
 }
 
 export function ContactSheet({
-  open, onClose, industries, existingNames, initial, defaultPlace = null, onSubmit, onSaved,
+  open, onClose, industries, existingNames, initial, defaultPlace = null, onSubmit, onPhoto, onSaved,
 }: Props) {
   const editing = Boolean(initial);
   const c = initial?.contact;
@@ -48,6 +52,7 @@ export function ContactSheet({
   const [notes, setNotes] = useState(c?.notes ?? '');
   const [shown, setShown] = useState<Set<Optional>>(() => {
     const s = new Set<Optional>();
+    if (initial?.photoUrl) s.add('photo');
     if (c?.industry_id) s.add('industry');
     if (c?.job_title) s.add('role');
     if (c?.company) s.add('company');
@@ -56,6 +61,7 @@ export function ContactSheet({
     if (c?.phone_e164) s.add('phone');
     return s;
   });
+  const [photo, setPhoto] = useState<PhotoChange>({ kind: 'none' });
   const [industryId, setIndustryId] = useState(c?.industry_id ?? '');
   const [industryName, setIndustryName] = useState('');
   const [role, setRole] = useState(c?.job_title ?? '');
@@ -97,7 +103,7 @@ export function ContactSheet({
 
   /** Clears everything except date and place, which stay sticky for "add another". */
   function resetRest() {
-    setName(''); setNotes(''); setShown(new Set());
+    setName(''); setNotes(''); setShown(new Set()); setPhoto({ kind: 'none' });
     setIndustryId(''); setIndustryName(''); setRole(''); setCompany('');
     setInstagram(''); setLinkedin(''); setPhone('');
   }
@@ -112,10 +118,20 @@ export function ContactSheet({
       industry_name: industryId === NEW_INDUSTRY ? industryName : null,
       job_title: role, company, instagram, linkedin_url: linkedin, phone, notes,
     });
+    if (!res.ok) { setBusy(false); setError(res.error); return; }
+
+    // Contact first, then the photo: the object path needs the contact id, and a
+    // failed upload must never lose the entry.
+    let saved = res.data;
+    let warning: string | undefined;
+    if (photo.kind !== 'none') {
+      const pr = await onPhoto(saved.id, photo.kind === 'set' ? photo.blob : null);
+      if (pr.ok) saved = pr.data;
+      else warning = `Saved ${saved.name}, but the photo didn’t upload (${pr.error}). Open the card and Edit to retry.`;
+    }
     setBusy(false);
-    if (!res.ok) { setError(res.error); return; }
     if (addAnother) { resetRest(); nameRef.current?.focus(); }
-    onSaved(res.data, addAnother);
+    onSaved(saved, addAnother, warning);
   }
 
   const reveal = (k: Optional) => setShown((s) => new Set(s).add(k));
@@ -177,11 +193,20 @@ export function ContactSheet({
         </label>
 
         <div className="pp-chips">
+          {!shown.has('photo') && (
+            <button type="button" className="pp-chip dashed" aria-label="Take a photo"
+                    onClick={() => reveal('photo')}><CameraIcon /> Photo</button>
+          )}
           {OPTIONAL.filter((o) => !shown.has(o.key)).map((o) => (
             <button key={o.key} type="button" className="pp-chip dashed"
                     onClick={() => reveal(o.key)}>+ {o.label}</button>
           ))}
         </div>
+
+        {shown.has('photo') && (
+          <PhotoInput existingUrl={initial?.photoUrl ?? null} value={photo} onChange={setPhoto}
+                      autoOpen={!initial?.photoUrl} />
+        )}
 
         {shown.has('industry') && (
           <label className="pp-field">

@@ -152,6 +152,39 @@ export async function updateContact(host: PeopleHost, id: string, input: Contact
 
 export async function deleteContact(host: PeopleHost, id: string): Promise<void> {
   await host.getUserId();
+  const { data: row } = await people(host).from('contacts').select('photo_path').eq('id', id).maybeSingle();
   const { error } = await people(host).from('contacts').delete().eq('id', id);
   if (error) throw error;
+  if (row?.photo_path) {
+    // Best effort: an orphaned object is harmless and RLS-scoped; a failed delete isn't.
+    await host.db().storage.from(PHOTO_BUCKET).remove([row.photo_path]);
+  }
+}
+
+export const PHOTO_BUCKET = 'people-photos';
+const PHOTO_MAX_BYTES = 2 * 1024 * 1024;
+
+/** Stores an already-compressed JPEG for the contact and records its path. */
+export async function setContactPhoto(host: PeopleHost, id: string, file: Blob): Promise<Contact> {
+  const userId = await host.getUserId();
+  if (file.type !== 'image/jpeg') throw new Error('Photo must be a JPEG');
+  if (file.size > PHOTO_MAX_BYTES) throw new Error('Photo is too large');
+  const path = `${userId}/${id}.jpg`;
+  const { error: upErr } = await host.db().storage.from(PHOTO_BUCKET)
+    .upload(path, file, { contentType: 'image/jpeg', upsert: true, cacheControl: '3600' });
+  if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
+  const { data, error } = await people(host).from('contacts')
+    .update({ photo_path: path }).eq('id', id).select('*').single();
+  if (error) throw error;
+  return data as Contact;
+}
+
+export async function removeContactPhoto(host: PeopleHost, id: string): Promise<Contact> {
+  await host.getUserId();
+  const { data: row } = await people(host).from('contacts').select('photo_path').eq('id', id).maybeSingle();
+  if (row?.photo_path) await host.db().storage.from(PHOTO_BUCKET).remove([row.photo_path]);
+  const { data, error } = await people(host).from('contacts')
+    .update({ photo_path: null }).eq('id', id).select('*').single();
+  if (error) throw error;
+  return data as Contact;
 }

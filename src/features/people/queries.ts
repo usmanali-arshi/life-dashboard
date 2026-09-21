@@ -44,6 +44,22 @@ export async function listPlaces(host: PeopleHost): Promise<Place[]> {
   return (data ?? []) as Place[];
 }
 
+/** Short-lived signed URLs for every contact that has a photo, keyed by contact id. */
+export async function photoUrls(host: PeopleHost, contacts: Contact[], ttlSeconds = 3600): Promise<Map<string, string>> {
+  const withPhoto = contacts.filter((c) => c.photo_path);
+  const out = new Map<string, string>();
+  if (withPhoto.length === 0) return out;
+  const { data, error } = await host.db().storage.from('people-photos')
+    .createSignedUrls(withPhoto.map((c) => c.photo_path!), ttlSeconds);
+  if (error || !data) return out;
+  const byPath = new Map(data.filter((d) => d.signedUrl).map((d) => [d.path, d.signedUrl]));
+  for (const c of withPhoto) {
+    const u = byPath.get(c.photo_path!);
+    if (u) out.set(c.id, u);
+  }
+  return out;
+}
+
 /** Own places matching a prefix/substring, for the autocomplete dropdown. */
 export async function searchPlaces(host: PeopleHost, q: string, limit = 5): Promise<Place[]> {
   const t = q.trim();

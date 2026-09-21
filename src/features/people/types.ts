@@ -31,6 +31,8 @@ export interface Contact {
   linkedin_url: string | null;
   phone_e164: string | null;
   notes: string | null;
+  /** Storage object path in the people-photos bucket, or null. */
+  photo_path: string | null;
   created_at: string;
   updated_at: string;
 }
