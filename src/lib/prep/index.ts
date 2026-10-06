@@ -6,6 +6,7 @@ import { deliveryFramework } from './sheets/delivery-framework';
 import { stack } from './sheets/stack';
 import { sharding } from './sheets/sharding';
 import { slidingWindow } from './sheets/sliding-window';
+import { dynamicProgramming } from './sheets/dynamic-programming';
 import type { Sheet, SheetKind } from './types';
 
 /**
@@ -22,6 +23,7 @@ export const SHEETS: Sheet[] = [
   caching,
   sharding,
   slidingWindow,
+  dynamicProgramming,
   stack,
 ];
 
